@@ -3,8 +3,10 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-
 const port = process.env.PORT || 5000;
+// const stripe = require("stripe")(`${process.env.PAYMENT_KEY}`);
+const stripe = require("stripe")(process.env.PAYMENT_KEY);
+
 app.use(cors());
 app.options("*", cors());
 app.use(express.json());
@@ -25,11 +27,46 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const instructorCollection = client.db("SereneSoulYogaDB").collection("InstructorClasses");
+    const instructorCollection = client
+      .db("SereneSoulYogaDB")
+      .collection("InstructorClasses");
     const bannerCollection = client.db("SereneSoulYogaDB").collection("Banner");
-    const topYogaCollection = client.db("SereneSoulYogaDB").collection("TopYoga");
+    const topYogaCollection = client
+      .db("SereneSoulYogaDB")
+      .collection("TopYoga");
     const userCollection = client.db("SereneSoulYogaDB").collection("users");
-    const selectedCollection = client.db("SereneSoulYogaDB").collection("selectedClass");
+    const selectedCollection = client
+      .db("SereneSoulYogaDB")
+      .collection("selectedClass");
+    const enrollCollection = client
+      .db("SereneSoulYogaDB")
+      .collection("enrollClass");
+
+    // stripe payment system start
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      if (price) {
+        const amount = parseFloat(price) * 100;
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+        });
+        console.log(paymentIntent);
+        res.send({ clientSecret: paymentIntent.client_secret });
+      }
+    });
+
+    // enroll classes
+    app.post("/enrollClasses", async (req, res) => {
+     const enrollClass = req.body
+    
+      const result = await enrollCollection.insertOne(enrollClass);
+      console.log(result);
+      res.send(result);
+    });
+
+    // instructor
 
     app.post("/instructor", async (req, res) => {
       const data = req.body;
@@ -97,14 +134,14 @@ async function run() {
     });
 
     app.get("/allClasses/selected/:id", async (req, res) => {
-      const classId = req.params.id
+      const classId = req.params.id;
       const query = { _id: new ObjectId(classId) };
       const result = await selectedCollection.findOne(query);
       res.send(result);
     });
 
     app.delete("/classDelete/:id", async (req, res) => {
-      const classId = req.params.id
+      const classId = req.params.id;
       const query = { _id: new ObjectId(classId) };
       const result = await selectedCollection.deleteOne(query);
       res.send(result);
