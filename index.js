@@ -2,13 +2,13 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 require("dotenv").config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const port = process.env.PORT || 5000;
-
 app.use(cors());
+app.options("*", cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.p45io4t.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -29,6 +29,7 @@ async function run() {
     const bannerCollection = client.db("SereneSoulYogaDB").collection("Banner");
     const topYogaCollection = client.db("SereneSoulYogaDB").collection("TopYoga");
     const userCollection = client.db("SereneSoulYogaDB").collection("users");
+    const selectedCollection = client.db("SereneSoulYogaDB").collection("selectedClass");
 
     app.post("/instructor", async (req, res) => {
       const data = req.body;
@@ -49,18 +50,82 @@ async function run() {
     // user
     app.post("/users", async (req, res) => {
       const user = req.body;
-      const query = {email : user.email}
-      const exitingUser = await userCollection.findOne(query)
-      if(!exitingUser){
+      const query = { email: user.email };
+      const exitingUser = await userCollection.findOne(query);
+      if (!exitingUser) {
         const result = await userCollection.insertOne(user);
-        res.send(result)
+        return res.send(result);
       }
-      return res.send({message : 'User Already Exist'})
+      return res.status(400).send({ message: "User Already Exist" });
+    });
+
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    //set user roll
+    app.patch("/users/roll/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedUser = req.body;
+
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: updatedUser.role,
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc);
+      res.send(result);
     });
 
     // all classes
     app.get("/allClasses", async (req, res) => {
       const result = await instructorCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/allClasses/select", async (req, res) => {
+      const classes = req.body;
+      const result = await selectedCollection.insertOne(classes);
+      res.send(result);
+    });
+
+    app.get("/allClasses/selected", async (req, res) => {
+      const result = await selectedCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/allClasses/selected/:id", async (req, res) => {
+      const classId = req.params.id
+      const query = { _id: new ObjectId(classId) };
+      const result = await selectedCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.delete("/classDelete/:id", async (req, res) => {
+      const classId = req.params.id
+      const query = { _id: new ObjectId(classId) };
+      const result = await selectedCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.patch("/allClasses/status/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedUser = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      console.log(id, query);
+      const updateDoc = {
+        $set: {
+          status: updatedUser.status,
+        },
+      };
+      const result = await instructorCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
       res.send(result);
     });
 
@@ -82,8 +147,6 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
   }
 }
 run().catch(console.dir);
