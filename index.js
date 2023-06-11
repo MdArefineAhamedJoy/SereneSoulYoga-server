@@ -63,15 +63,12 @@ async function run() {
       res.send(result);
     });
 
-    // app.get("/enrollClasses/:email", async (req, res) => {
-    //   const userEmail = req.params.email
-
-    //   const query = {email : userEmail}
-    //   console.log('........................... 71',   query)
-    //   const result = await enrollCollection.find(query).toArray();
-    //   res.send(result);
-    //   console.log(result)
-    // });
+    app.get("/enrollClasses/:email", async (req, res) => {
+      const userEmail = req.params.email
+      const query = {paymentUser : userEmail}
+      const result = await enrollCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.put("/updateClass/:id", async (req, res) => {
       const Id = req.params.id;
