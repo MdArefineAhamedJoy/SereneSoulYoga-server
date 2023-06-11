@@ -135,7 +135,9 @@ async function run() {
 
     // all classes
     app.get("/allClasses", async (req, res) => {
-      const result = await instructorCollection.find().toArray();
+      const classStatus = req.query.status 
+      const query = {status : classStatus}
+      const result = await instructorCollection.find(query).toArray();
       res.send(result);
     });
 
