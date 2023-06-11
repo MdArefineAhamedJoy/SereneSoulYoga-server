@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 
 app.use(cors());
-app.options("*", cors());
+
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.p45io4t.mongodb.net/?retryWrites=true&w=majority`;
@@ -52,20 +52,40 @@ async function run() {
           amount: amount,
           currency: "usd",
         });
-        console.log(paymentIntent);
         res.send({ clientSecret: paymentIntent.client_secret });
       }
     });
 
     // enroll classes
     app.post("/enrollClasses", async (req, res) => {
-     const enrollClass = req.body
-    
+      const enrollClass = req.body;
       const result = await enrollCollection.insertOne(enrollClass);
-      console.log(result);
       res.send(result);
     });
 
+    // app.get("/enrollClasses/:email", async (req, res) => {
+    //   const userEmail = req.params.email
+
+    //   const query = {email : userEmail}
+    //   console.log('........................... 71',   query)
+    //   const result = await enrollCollection.find(query).toArray();
+    //   res.send(result);
+    //   console.log(result)
+    // });
+
+    app.put("/updateClass/:id", async (req, res) => {
+      const Id = req.params.id;
+      const query = {classId : Id}
+      const { availableSeat, enroll } = req.body;
+      const updateDoc = {
+        $set: {
+          availableSite: availableSeat,
+          enroll:enroll
+        }, 
+      }
+      const result = await enrollCollection.updateOne(query , updateDoc)
+
+    });
     // instructor
 
     app.post("/instructor", async (req, res) => {
@@ -152,7 +172,6 @@ async function run() {
       const updatedUser = req.body;
       const query = { _id: new ObjectId(id) };
       const options = { upsert: true };
-      console.log(id, query);
       const updateDoc = {
         $set: {
           status: updatedUser.status,
