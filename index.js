@@ -64,24 +64,29 @@ async function run() {
     });
 
     app.get("/enrollClasses/:email", async (req, res) => {
-      const userEmail = req.params.email
-      const query = {paymentUser : userEmail}
+      const userEmail = req.params.email;
+      const query = { paymentUser: userEmail };
       const result = await enrollCollection.find(query).toArray();
       res.send(result);
     });
 
     app.put("/updateClass/:id", async (req, res) => {
       const Id = req.params.id;
-      const query = {classId : Id}
-      const { availableSeat, enroll } = req.body;
+      const query = { _id: new ObjectId(Id) };
+      const findUser = await instructorCollection.findOne(query);
+      const updatedAvailableSeat = parseInt(findUser.availableSite) - 1;
+      const updatedEnroll = parseInt(findUser.enroll) + 1;
       const updateDoc = {
         $set: {
-          availableSite: availableSeat,
-          enroll:enroll
-        }, 
-      }
-      const result = await enrollCollection.updateOne(query , updateDoc)
+          availableSite: updatedAvailableSeat,
+          enroll: updatedEnroll,
+        },
+      };
+      const result = await instructorCollection.updateOne(query, updateDoc);
 
+      const result1 = await selectedCollection.updateOne(query, updateDoc);
+
+      res.send(result);
     });
     // instructor
 
@@ -95,13 +100,6 @@ async function run() {
       res.send(result);
     });
 
-    // app.get('/instructor/:text', async(req , res) =>{
-    //     const email = req.params
-    //     console.log(email)
-    //     const result = await instructorCollection.find().toArray()
-    //     res.send(result)
-    // })
-    // user
     app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -135,8 +133,8 @@ async function run() {
 
     // all classes
     app.get("/allClasses", async (req, res) => {
-      const classStatus = req.query.status 
-      const query = {status : classStatus}
+      const classStatus = req.query.status;
+      const query = { status: classStatus };
       const result = await instructorCollection.find(query).toArray();
       res.send(result);
     });
@@ -182,6 +180,29 @@ async function run() {
         options
       );
       res.send(result);
+    });
+
+    // popular class & instructor
+    app.get("/popularClass", async (req, res) => {
+      const result = await instructorCollection
+        .find()
+        .sort({ enroll: 1 })
+        .limit(6)
+        .toArray();
+      console.log(result);
+
+      res.send(result);
+    });
+
+    app.get("/popularClass", async (req, res) => {
+      const result = await instructorCollection
+        .find()
+        .sort({ enroll: 1 })
+        .limit(6)
+        .toArray();
+      console.log(result);
+      const filter = result.map((instructor) => instructor.email);
+      const query = res.send(result);
     });
 
     // banner section
