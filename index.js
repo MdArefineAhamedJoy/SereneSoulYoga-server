@@ -56,6 +56,13 @@ async function run() {
       }
     });
 
+    app.get("/all/selected/class/:id", async (req, res) => {
+      const classId = req.params.id;
+      const query = { _id: new ObjectId(classId) };
+      const result = await selectedCollection.findOne(query);
+      res.send(result);
+    });
+
     // enroll classes
     app.post("/enrollClasses", async (req, res) => {
       const enrollClass = req.body;
@@ -145,21 +152,19 @@ async function run() {
 
     app.post("/allClasses/select", async (req, res) => {
       const classes = req.body;
+      // const id = req.params.id
+      // console.log(classes)
       const result = await selectedCollection.insertOne(classes);
       res.send(result);
     });
 
-    app.get("/allClasses/selected", async (req, res) => {
-      const result = await selectedCollection.find().toArray();
+    app.get("/allClasses/selected/:email", async (req, res) => {
+      const email = req.params.email 
+      const query = {userEmail : email}
+      const result = await selectedCollection.find(query).toArray();
       res.send(result);
     });
 
-    app.get("/allClasses/selected/:id", async (req, res) => {
-      const classId = req.params.id;
-      const query = { _id: new ObjectId(classId) };
-      const result = await selectedCollection.findOne(query);
-      res.send(result);
-    });
 
     app.delete("/classDelete/:id", async (req, res) => {
       const classId = req.params.id;
