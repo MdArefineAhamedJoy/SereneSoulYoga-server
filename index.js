@@ -66,9 +66,9 @@ async function run() {
     // enroll classes
     app.post("/enrollClasses", async (req, res) => {
       const enrollClass = req.body;
-      const id = req.query.id
-      const query = {_id : new ObjectId(id)}
-      const removeSelect = await selectedCollection.deleteOne(query)
+      const id = req.query.id;
+      const query = { _id: new ObjectId(id) };
+      const removeSelect = await selectedCollection.deleteOne(query);
       const result = await enrollCollection.insertOne(enrollClass);
       res.send(result);
     });
@@ -160,12 +160,11 @@ async function run() {
     });
 
     app.get("/allClasses/selected/:email", async (req, res) => {
-      const email = req.params.email 
-      const query = {userEmail : email}
+      const email = req.params.email;
+      const query = { userEmail: email };
       const result = await selectedCollection.find(query).toArray();
       res.send(result);
     });
-
 
     app.delete("/classDelete/:id", async (req, res) => {
       const classId = req.params.id;
@@ -196,7 +195,7 @@ async function run() {
     app.get("/popularClass", async (req, res) => {
       const result = await instructorCollection
         .find()
-        .sort({ enroll: 1 })
+        .sort({ enroll: -1 })
         .limit(6)
         .toArray();
       res.send(result);
@@ -205,14 +204,13 @@ async function run() {
     app.get("/popular/instructor", async (req, res) => {
       const findClass = await instructorCollection
         .find()
-        .sort({ enroll: 1 })
+        .sort({ enroll: -1 })
+        .limit(6)
         .toArray();
-      
-      const filter = findClass.map((instructor) => instructor.email);
 
-      const query = {email : filter}
-      const result = await userCollection.find(query ).limit(6).toArray()
-      // console.log(result);
+      const filter = findClass.map((instructor) => instructor.email);
+      const query = { email: { $in: filter } };
+      const result = await userCollection.find(query).toArray();
       res.send(result);
     });
 
