@@ -66,6 +66,9 @@ async function run() {
     // enroll classes
     app.post("/enrollClasses", async (req, res) => {
       const enrollClass = req.body;
+      const id = req.query.id
+      const query = {_id : new ObjectId(id)}
+      const removeSelect = await selectedCollection.deleteOne(query)
       const result = await enrollCollection.insertOne(enrollClass);
       res.send(result);
     });
@@ -90,13 +93,11 @@ async function run() {
         },
       };
       const result = await instructorCollection.updateOne(query, updateDoc);
-
       const result1 = await selectedCollection.updateOne(query, updateDoc);
-
       res.send(result);
     });
-    // instructor
 
+    // instructor
     app.post("/instructor", async (req, res) => {
       const data = req.body;
       const result = await instructorCollection.insertOne(data);
