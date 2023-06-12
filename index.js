@@ -133,6 +133,10 @@ async function run() {
 
     // all classes
     app.get("/allClasses", async (req, res) => {
+      const result = await instructorCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/approveClass", async (req, res) => {
       const classStatus = req.query.status;
       const query = { status: classStatus };
       const result = await instructorCollection.find(query).toArray();
@@ -189,20 +193,21 @@ async function run() {
         .sort({ enroll: 1 })
         .limit(6)
         .toArray();
-      console.log(result);
-
       res.send(result);
     });
 
-    app.get("/popularClass", async (req, res) => {
-      const result = await instructorCollection
+    app.get("/popular/instructor", async (req, res) => {
+      const findClass = await instructorCollection
         .find()
         .sort({ enroll: 1 })
-        .limit(6)
         .toArray();
-      console.log(result);
-      const filter = result.map((instructor) => instructor.email);
-      const query = res.send(result);
+      
+      const filter = findClass.map((instructor) => instructor.email);
+
+      const query = {email : filter}
+      const result = await userCollection.find(query ).limit(6).toArray()
+      // console.log(result);
+      res.send(result);
     });
 
     // banner section
