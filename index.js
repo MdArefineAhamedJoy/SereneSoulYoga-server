@@ -41,6 +41,9 @@ async function run() {
     const enrollCollection = client
       .db("SereneSoulYogaDB")
       .collection("enrollClass");
+    const feedbackCollection = client
+      .db("SereneSoulYogaDB")
+      .collection("feedback");
 
     // stripe payment system start
 
@@ -76,7 +79,7 @@ async function run() {
     app.get("/enrollClasses/:email", async (req, res) => {
       const userEmail = req.params.email;
       const query = { paymentUser: userEmail };
-      const result = await enrollCollection.find(query).toArray();
+      const result = await enrollCollection.find(query).sort({ _id : -1 }).toArray();
       res.send(result);
     });
 
@@ -103,8 +106,10 @@ async function run() {
       const result = await instructorCollection.insertOne(data);
       res.send(result);
     });
-    app.get("/instructor", async (req, res) => {
-      const result = await instructorCollection.find().toArray();
+    app.get("/instructor/:emails", async (req, res) => {
+      const email = req.params.emails
+      const query = {email : email}
+      const result = await instructorCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -213,6 +218,16 @@ async function run() {
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
+
+    // feedBack section
+    app.post('/admin/feedBack', async (req , res) =>{
+        const feedback = req.body 
+        console.log(feedback)
+     
+        const result = await feedbackCollection.insertOne(feedback)
+        res.send(result)
+    })
+
 
     // banner section
     app.get("/banner", async (req, res) => {
