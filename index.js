@@ -41,9 +41,6 @@ async function run() {
     const enrollCollection = client
       .db("SereneSoulYogaDB")
       .collection("enrollClass");
-    const feedbackCollection = client
-      .db("SereneSoulYogaDB")
-      .collection("feedback");
 
     // stripe payment system start
 
@@ -79,7 +76,10 @@ async function run() {
     app.get("/enrollClasses/:email", async (req, res) => {
       const userEmail = req.params.email;
       const query = { paymentUser: userEmail };
-      const result = await enrollCollection.find(query).sort({ _id : -1 }).toArray();
+      const result = await enrollCollection
+        .find(query)
+        .sort({ _id: -1 })
+        .toArray();
       res.send(result);
     });
 
@@ -107,8 +107,8 @@ async function run() {
       res.send(result);
     });
     app.get("/instructor/:emails", async (req, res) => {
-      const email = req.params.emails
-      const query = {email : email}
+      const email = req.params.emails;
+      const query = { email: email };
       const result = await instructorCollection.find(query).toArray();
       res.send(result);
     });
@@ -133,7 +133,6 @@ async function run() {
     app.patch("/users/roll/:id", async (req, res) => {
       const id = req.params.id;
       const updatedUser = req.body;
-
       const query = { _id: new ObjectId(id) };
       const updateDoc = {
         $set: {
@@ -206,28 +205,40 @@ async function run() {
       res.send(result);
     });
 
+
     app.get("/popular/instructor", async (req, res) => {
       const findClass = await instructorCollection
         .find()
         .sort({ enroll: -1 })
-        .limit(6)
         .toArray();
-
       const filter = findClass.map((instructor) => instructor.email);
       const query = { email: { $in: filter } };
-      const result = await userCollection.find(query).toArray();
+      const result = await userCollection.find(query).limit(6).toArray(); 
       res.send(result);
     });
 
     // feedBack section
-    app.post('/admin/feedBack', async (req , res) =>{
-        const feedback = req.body 
-        console.log(feedback)
-     
-        const result = await feedbackCollection.insertOne(feedback)
-        res.send(result)
-    })
+    app.put("/admin/feedBack/:id", async (req, res) => {
+      const feedback = req.body.feedback;
+      const id = req.params.id;
 
+      const query = { _id: new ObjectId(id) };
+      console.log(id, query, feedback);
+      const options = { upsert: true };
+
+      const updateDoc = {
+        $set: {
+          feedback,
+        },
+      };
+
+      const result = await instructorCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
 
     // banner section
     app.get("/banner", async (req, res) => {
