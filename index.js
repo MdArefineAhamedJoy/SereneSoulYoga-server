@@ -41,6 +41,8 @@ async function run() {
     const enrollCollection = client
       .db("SereneSoulYogaDB")
       .collection("enrollClass");
+    const memberShip = client.db("SereneSoulYogaDB").collection("MemberShip")
+    const feedBack = client.db("SereneSoulYogaDB").collection("FeedBack")
 
     // stripe payment system start
 
@@ -150,6 +152,7 @@ async function run() {
     });
     app.get("/approveClass", async (req, res) => {
       const classStatus = req.query.status;
+      console.log(classStatus)
       const query = { status: classStatus };
       const result = await instructorCollection.find(query).toArray();
       res.send(result);
@@ -157,8 +160,6 @@ async function run() {
 
     app.post("/allClasses/select", async (req, res) => {
       const classes = req.body;
-      // const id = req.params.id
-      // console.log(classes)
       const result = await selectedCollection.insertOne(classes);
       res.send(result);
     });
@@ -223,7 +224,7 @@ async function run() {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
-      console.log(id, query, feedback);
+
       const options = { upsert: true };
 
       const updateDoc = {
@@ -251,6 +252,18 @@ async function run() {
       const result = await topYogaCollection.find().toArray();
       res.send(result);
     });
+
+    // memberShip
+    app.get("/memberShip", async(response , request ) => {
+      const result = await memberShip.find().toArray()
+      request.send(result)
+    })
+
+    // feedback 
+    app.get("/feedback", async(response , request) => {
+      const result = await feedBack.find().toArray()
+      request.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
