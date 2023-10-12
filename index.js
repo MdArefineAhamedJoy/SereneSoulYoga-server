@@ -43,6 +43,8 @@ async function run() {
       .collection("enrollClass");
     const memberShip = client.db("SereneSoulYogaDB").collection("MemberShip")
     const feedBack = client.db("SereneSoulYogaDB").collection("FeedBack")
+    const healthServer = client.db("SereneSoulYogaDB").collection("health")
+    const blogServer = client.db("SereneSoulYogaDB").collection("blog")
 
     // stripe payment system start
 
@@ -256,6 +258,17 @@ async function run() {
     // memberShip
     app.get("/memberShip", async(response , request ) => {
       const result = await memberShip.find().toArray()
+      request.send(result)
+    })
+
+    // health
+    app.get("/health", async(response , request ) => {
+      const result = await healthServer.find().toArray()
+      request.send(result)
+    })
+    // blog
+    app.get("/blog", async(response , request ) => {
+      const result = await blogServer.find().toArray()
       request.send(result)
     })
 
