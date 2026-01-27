@@ -22,7 +22,7 @@ const connectDB = async () => {
         console.error(
           "Missing DB_USER/DB_PASSWORD. Provide MONGODB_URI or set DB_USER, DB_PASSWORD, and optionally DB_HOST.",
         );
-        process.exit(1);
+        return; // Don't exit, just return
       }
     } else {
       const dbUser = encodeURIComponent(rawUser);
@@ -38,7 +38,7 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${mongoose.connection.host}`);
   } catch (error) {
     console.error(`Error: ${error.message}`);
-    process.exit(1);
+    // process.exit(1); // Don't exit on Vercel
   }
 };
 
